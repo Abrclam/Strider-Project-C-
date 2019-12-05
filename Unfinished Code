@@ -1,0 +1,161 @@
+//rainbow mouse circle drawing program
+//programmed by Dr. Mo avoiding housework 10/12/19
+//adapted from https://wiki.allegro.cc/index.php?title=Allegro_5_Tutorial/Input
+
+#include <stdio.h>
+#include <allegro5/allegro.h>
+#include<allegro5\allegro_primitives.h>
+#include <allegro5/allegro_image.h>
+#include<allegro5\allegro_font.h>
+#include<allegro5/allegro_ttf.h>
+
+/*class Points {
+private:
+	int xpos;
+	int ypos;
+	bool collected;
+	ALLEGRO_BITMAP* coin;
+
+public:
+	Coin(int x, int y, ALLEGRO_BITMAP*pic);
+
+};
+*/
+
+int random;
+int corner1;
+int corner2;
+int size=0;
+const float FPS = 60;
+const int SCREEN_W = 1920;
+const int SCREEN_H = 1010;
+const int BOUNCER_SIZE = 32;
+int cellNum = 0.8;
+int parts = 0;
+int xPos = 200;
+int yPos = 300;
+int score = 0;
+
+int main(int argc, char** argv)
+{
+	ALLEGRO_DISPLAY* display = NULL;
+	ALLEGRO_EVENT_QUEUE* event_queue = NULL;
+	ALLEGRO_TIMER* timer = NULL;
+	ALLEGRO_BITMAP* bouncer = NULL;
+	srand(time(NULL));
+	random = rand() % 255 + 1;
+	int xpos = SCREEN_W / 2;
+	int ypos = SCREEN_H / 2;
+	bool drawCircle = false;
+	bool redraw = true;
+
+	int pos1x = 0;
+	int pos1y = 0;
+	int pos2x = 0;
+	int pos2y = 0;
+	int pos3x=0;
+	int pos3y=0;
+	int ticker = 0;
+	int jeff = rand() % 3 - 1;
+	al_init();
+	al_install_mouse();
+	al_init_primitives_addon();
+	al_init_image_addon();
+	al_init_font_addon();
+	al_init_ttf_addon();
+	srand(time(NULL));
+	timer = al_create_timer(1.0 / FPS);
+	display = al_create_display(SCREEN_W, SCREEN_H);
+
+	ALLEGRO_BITMAP* strider = al_load_bitmap("strider.png");
+	ALLEGRO_BITMAP* coin = al_load_bitmap("Dogecoin.png");
+	ALLEGRO_BITMAP* shark = al_load_bitmap("SKRARK.png");
+	ALLEGRO_FONT* font = al_load_font("sponge.ttf", 25, 0);
+	al_set_target_bitmap(al_get_backbuffer(display));
+	event_queue = al_create_event_queue();
+	al_register_event_source(event_queue, al_get_display_event_source(display));
+	al_register_event_source(event_queue, al_get_timer_event_source(timer));
+	al_register_event_source(event_queue, al_get_mouse_event_source());
+	al_start_timer(timer);
+
+	while (1)
+	{
+		ALLEGRO_EVENT ev;
+		al_wait_for_event(event_queue, &ev);
+
+		if (ev.type == ALLEGRO_EVENT_TIMER) {
+			ticker++;
+			if (ticker %6 == 0)
+				cellNum++;
+			if (cellNum > 4)
+				cellNum = 0;
+			if (ticker % 10 == 0)
+				parts++;
+			if (cellNum > 4)
+				parts = 0;
+
+			if (ticker % 5 == 0) {
+				
+				pos2x = pos1x;
+				pos2y = pos1y;
+				pos1x = xpos;
+				pos1y = ypos+40;
+				
+			}
+			if (ticker % 8 == 0) {
+
+				pos3x = pos2x-75;
+				pos3y = pos2y-30;
+
+			}
+		
+			redraw = true;
+		}
+		else if (ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
+			break;
+		}
+		else if (ev.type == ALLEGRO_EVENT_MOUSE_AXES ||
+			ev.type == ALLEGRO_EVENT_MOUSE_ENTER_DISPLAY) {
+
+			xpos = ev.mouse.x;
+			ypos = ev.mouse.y;
+		}
+		else if (ev.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN) {
+			drawCircle = true;
+			corner1 = xpos;
+			corner2 = ypos;
+			//size++;
+		}
+		else if (ev.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP) {
+			drawCircle = true;
+			size++;
+		}
+
+		if (redraw && al_is_event_queue_empty(event_queue)) {
+			redraw = false;
+
+			al_clear_to_color(al_map_rgb(70, 70, 255));
+
+			if (drawCircle == true) {
+				//al_draw_filled_triangle(xpos, ypos, 5, 3, 2, 5, al_map_rgb(rand() % 255, rand() % 255, rand() % 255));
+				al_draw_bitmap_region(strider, cellNum * 50, 0, 50, 50, xpos-23, ypos, NULL);
+				al_draw_circle(xpos, ypos, 5, al_map_rgb(10,10,255),3);
+				al_draw_circle(pos1x, pos1y, 10, al_map_rgb(255, 255,255), 3);
+				al_draw_circle(pos2x, pos2y, 15, al_map_rgb(240, 240, 240), 3);
+				al_draw_textf(font, al_map_rgb(255, 255, 255), 0, 10, NULL, "Score: ");
+				al_draw_bitmap_region(shark, cellNum * 150, 0, 150, 150, pos3x, pos3y, NULL);
+				al_draw_bitmap_region(coin, cellNum * 180, 0, 180, 180, 300, 500, NULL);
+			
+			
+			}
+			al_flip_display();
+		}
+	}
+
+	al_destroy_timer(timer);
+	al_destroy_display(display);
+	al_destroy_event_queue(event_queue);
+
+	return 0;
+}
+
